@@ -104,7 +104,7 @@ const styles = {
   agentRow: { display: 'flex', gap: '16px', alignItems: 'flex-start' },
   iconContainer: { padding: '10px', backgroundColor: '#334155', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
   userMsg: { backgroundColor: '#3b82f6', padding: '16px 20px', borderRadius: '16px 4px 16px 16px', maxWidth: '70%', lineHeight: '1.6', fontSize: '1rem', whiteSpace: 'pre-wrap' },
-  agentMsg: { backgroundColor: '#1e293b', border: '1px solid #334155', padding: '16px 20px', borderRadius: '4px 16px 16px 16px', maxWidth: '70%', lineHeight: '1.6', fontSize: '1rem', whiteSpace: 'pre-wrap' },
+  agentMsg: { backgroundColor: '#1e293b', border: '1px solid #334155', padding: '16px 20px', borderRadius: '4px 16px 16px 16px', maxWidth: '70%', lineHeight: '1.6', fontSize: '1rem', whiteSpace: 'pre-wrap', textAlign: 'left' },
   inputArea: { padding: '24px 40px', backgroundColor: '#1e293b', borderTop: '1px solid #334155', display: 'flex', gap: '16px' },
   input: { flex: 1, padding: '16px 24px', borderRadius: '8px', border: '1px solid #334155', backgroundColor: '#0f172a', color: '#f8fafc', fontSize: '1rem', outline: 'none' },
   sendBtn: { padding: '0 24px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }
