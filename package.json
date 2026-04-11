@@ -13,13 +13,14 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/shahidul1920/linkedin_branderAI/issues"
   },
   "homepage": "https://github.com/shahidul1920/linkedin_branderAI#readme",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.1",
     "express": "^5.2.1"
   }

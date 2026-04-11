@@ -2,69 +2,73 @@ import express from 'express';
 import fs from 'fs';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
+import cors from 'cors';
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
-app.use(express.json()); 
+app.use(express.json());
+app.use(cors()); // Crucial for React to talk to this API on a different port
 
-// Initialize Google AI with your secure key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-
-// Read your brain/profile data once when the server starts
 const profileData = JSON.parse(fs.readFileSync('./myProfile.json', 'utf8'));
 
-app.post('/api/generate-post', async (req, res) => {
-    const userTopic = req.body.topic;
+// Initialize the model with Search Grounding
+const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash",
+    tools: [{ googleSearch: {} }] 
+});
 
-    if (!userTopic) {
-        return res.status(400).json({ error: "Please provide a topic." });
+// The Dual-Persona System Instructions
+const systemInstructions = `
+You are the Digital Twin Agent for Shahidul Shakil.
+IDENTITY: ${JSON.stringify(profileData.identity)}
+PILLARS: ${JSON.stringify(profileData.contentPillars)}
+TONE: ${JSON.stringify(profileData.toneRules)}
+
+STRATEGY:
+1. Act as a Strategist: If Shahidul gives a raw, vague idea, push back. Ask him to clarify which of his content pillars it fits into or suggest a better angle.
+2. Act as a Copywriter: When asked to draft, use his exact tone. Zero corporate fluff.
+3. Use Search Grounding to pull live data if the topic involves current tech trends, framework updates, or industry news.
+`;
+
+// Initialize the persistent chat session
+let chatSession = model.startChat({
+    history: [{ role: "user", parts: [{ text: systemInstructions }] }],
+});
+
+// The API Endpoint
+app.post('/api/chat', async (req, res) => {
+    const userMessage = req.body.message;
+
+    if (!userMessage) {
+        return res.status(400).json({ error: "Message is required." });
     }
 
     try {
-        // We are using Gemma 4 31B to exploit your unlimited TPM
-        // (Double check your AI Studio dashboard for the exact model string name if it varies)
-        const model = genAI.getGenerativeModel({ model: "gemma-4-31b" });
-
-        // This is the Mega-Prompt: Injecting your persona directly into the instructions
-        const systemInstructions = `
-You are the personal digital twin and LinkedIn ghostwriter for Shahidul Shakil.
-You must adopt his exact persona, technical background, and tone. 
-
-IDENTITY & BACKGROUND: 
-${JSON.stringify(profileData.identity)}
-
-CONTENT PILLARS (Only write about these angles):
-${JSON.stringify(profileData.contentPillars)}
-
-TONE RULES (Strictly enforce these):
-${JSON.stringify(profileData.toneRules)}
-
-TASK:
-Write a highly engaging LinkedIn post based on the topic below. 
-Do NOT write an intro acknowledging this prompt (like "Here is your post"). Just output the raw text of the post.
-
-TOPIC: ${userTopic}
-        `;
-
-        console.log("Sending prompt to Gemma 4...");
+        console.log(`Processing user prompt: "${userMessage}"`);
+        const result = await chatSession.sendMessage(userMessage);
         
-        // Fire the request
-        const result = await model.generateContent(systemInstructions);
-        const finalPost = result.response.text();
-
-        // Send the generated text back to the frontend
-        res.json({ generatedPost: finalPost });
+        res.json({ 
+            reply: result.response.text(),
+            status: "success"
+        });
 
     } catch (error) {
-        console.error("AI Generation Error:", error);
-        res.status(500).json({ error: "Failed to generate the post." });
+        console.error("Agent Error:", error);
+        res.status(500).json({ error: "The agent encountered an error processing your request." });
     }
+});
+
+// Reset endpoint (useful if the agent gets stuck in a loop and you want to clear memory)
+app.post('/api/reset', (req, res) => {
+    chatSession = model.startChat({
+        history: [{ role: "user", parts: [{ text: systemInstructions }] }],
+    });
+    res.json({ message: "Agent memory wiped. Ready for a new topic." });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Digital Twin API running on http://localhost:${PORT}`);
-    console.log(`Ready to generate posts.`);
+    console.log(`🧠 Agent Backend running on port ${PORT}`);
 });
