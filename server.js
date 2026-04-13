@@ -10,6 +10,8 @@ const app = express();
 app.use(express.json());
 app.use(cors()); // Crucial for React to talk to this API on a different port
 
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const profileData = JSON.parse(fs.readFileSync('./myProfile.json', 'utf8'));
 
@@ -37,6 +39,37 @@ let chatSession = model.startChat({
     history: [{ role: "user", parts: [{ text: systemInstructions }] }],
 });
 
+const extractStatusCode = (error) => {
+    return error?.status || error?.statusCode || error?.response?.status || 500;
+};
+
+const isTransientModelError = (error) => {
+    const status = extractStatusCode(error);
+    return status === 429 || status === 503;
+};
+
+const sendWithRetry = async (message, maxRetries = 2) => {
+    let lastError;
+
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+            return await chatSession.sendMessage(message);
+        } catch (error) {
+            lastError = error;
+
+            if (!isTransientModelError(error) || attempt === maxRetries) {
+                throw error;
+            }
+
+            const backoffMs = 1000 * (attempt + 1);
+            console.warn(`Transient Gemini error. Retrying in ${backoffMs}ms...`);
+            await sleep(backoffMs);
+        }
+    }
+
+    throw lastError;
+};
+
 // The API Endpoint
 app.post('/api/chat', async (req, res) => {
     const userMessage = req.body.message;
@@ -47,7 +80,7 @@ app.post('/api/chat', async (req, res) => {
 
     try {
         console.log(`Processing user prompt: "${userMessage}"`);
-        const result = await chatSession.sendMessage(userMessage);
+        const result = await sendWithRetry(userMessage);
         
         res.json({ 
             reply: result.response.text(),
@@ -56,7 +89,26 @@ app.post('/api/chat', async (req, res) => {
 
     } catch (error) {
         console.error("Agent Error:", error);
-        res.status(500).json({ error: "The agent encountered an error processing your request." });
+        const status = extractStatusCode(error);
+
+        if (status === 503) {
+            return res.status(503).json({
+                error: "The AI model is temporarily overloaded. Please try again in a few seconds.",
+                code: "MODEL_OVERLOADED"
+            });
+        }
+
+        if (status === 429) {
+            return res.status(429).json({
+                error: "Rate limit reached. Please wait a moment and try again.",
+                code: "RATE_LIMITED"
+            });
+        }
+
+        res.status(500).json({
+            error: "The agent encountered an error processing your request.",
+            code: "AGENT_ERROR"
+        });
     }
 });
 

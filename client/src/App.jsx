@@ -32,7 +32,9 @@ export default function App() {
       
       setMessages(prev => [...prev, { role: 'agent', text: response.data.reply }])
     } catch (error) {
-      setMessages(prev => [...prev, { role: 'agent', text: "Error connecting to the brain. Check if the Node server is running." }])
+      const backendMessage = error?.response?.data?.error
+      const fallbackMessage = "Could not reach the backend. Check that the server is running on port 3000."
+      setMessages(prev => [...prev, { role: 'agent', text: backendMessage || fallbackMessage }])
     } finally {
       setIsLoading(false)
     }
