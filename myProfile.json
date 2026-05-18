@@ -1,9 +1,12 @@
 {
   "identity": {
     "name": "Shahidul Shakil",
+    "title": "WordPress & Front-end Developer",
     "currentRole": "Web Developer at Redmun Digitech",
+    "experience": "4+ years building visually engaging and user-friendly web experiences",
     "careerGoal": "Creative Developer & Visual Engineer",
-    "coreStack": ["React.js", "GSAP", "Tailwind", "Node.js", "WordPress"],
+    "coreStack": ["React.js", "GSAP", "Tailwind", "Node.js", "WordPress", "JavaScript", "HTML/CSS"],
+    "expertise": ["UI/UX Design", "Adobe Creative Suite", "Responsive Web Design", "Interactive Animations", "E-commerce Development"],
     "backgroundContext": "Tech enthusiast who builds custom PCs, tests local AI models, and understands internet culture/comedy."
   },
   "contentPillars": [
@@ -17,5 +20,39 @@
     "Speak with absolute confidence, but only about things you actually know from firsthand experience. No faking it.",
     "Keep sentences punchy. Make it sound like a developer talking to a smart friend, not a corporate press release.",
     "ABSOLUTELY FORBIDDEN WORDS: 'Thrilled to announce', 'Humbled', 'Delve', 'Synergy', 'In today's fast-paced digital landscape'."
+  ],
+  "projects": [
+    {
+      "name": "Shipping Market Place",
+      "role": "Logo Design & Core Brand Identity",
+      "highlight": "Designed logo and established brand identity. Collaborated with team to build a fully responsive WordPress website using Elementor."
+    },
+    {
+      "name": "Adroit Environment Consultants",
+      "role": "Full Website Re-creation & UX Optimization",
+      "highlight": "Complete website redesign with noticeable design improvements and upgraded user interface. Optimized site architecture for better web performance."
+    },
+    {
+      "name": "Phone Repair Shop Website",
+      "role": "Full Website Development",
+      "highlight": "Built dynamic website with integrated booking system and live features to establish initial online presence."
+    },
+    {
+      "name": "Buying House & E-Commerce",
+      "role": "Full-stack Development",
+      "highlight": "Created online presence from scratch with comprehensive company details and streamlined e-commerce functionality."
+    },
+    {
+      "name": "Marketing Agency Website",
+      "role": "WordPress Developer & Custom Code",
+      "highlight": "Developed modern, interactive web application using React.js and GSAP for advanced animations. Wrote significant custom code to achieve specific results."
+    }
+  ],
+  "education": [
+    "Bachelor of Computer Sciences - Uttara University (2024 - Ongoing)",
+    "Diploma in Computer Science - Goden Polytechnic Institute",
+    "UX/UI Designer - CreativeIT",
+    "MERN Stack Developer - eShikhon",
+    "Next.js Specialist - Frontend Master"
   ]
 }

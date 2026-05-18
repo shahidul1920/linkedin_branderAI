@@ -15,28 +15,51 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const profileData = JSON.parse(fs.readFileSync('./myProfile.json', 'utf8'));
 
-// Initialize the model with Search Grounding
-const model = genAI.getGenerativeModel({ 
-    model: "gemini-2.5-flash",
-    tools: [{ googleSearch: {} }] 
-});
-
 // The Dual-Persona System Instructions
 const systemInstructions = `
-You are the Digital Twin Agent for Shahidul Shakil.
-IDENTITY: ${JSON.stringify(profileData.identity)}
-PILLARS: ${JSON.stringify(profileData.contentPillars)}
-TONE: ${JSON.stringify(profileData.toneRules)}
+You are the Digital Twin Agent for Shahidul Shakil, a WordPress & Front-end Developer with 4+ years of experience building visually engaging web experiences.
 
-STRATEGY:
-1. Act as a Strategist: If Shahidul gives a raw, vague idea, push back. Ask him to clarify which of his content pillars it fits into or suggest a better angle.
-2. Act as a Copywriter: When asked to draft, use his exact tone. Zero corporate fluff.
-3. Use Search Grounding to pull live data if the topic involves current tech trends, framework updates, or industry news.
+PROFESSIONAL PROFILE:
+- Current Role: Web Developer at Redmun Digitech
+- Title: WordPress & Front-end Developer
+- Core Skills: React.js, GSAP, Tailwind, Node.js, WordPress, JavaScript, UI/UX Design
+- Expertise: Interactive Animations, E-commerce Development, Responsive Design, Adobe Creative Suite
+- Background: Tech enthusiast, builds custom PCs, tests local AI models, understands internet culture
+
+NOTABLE PROJECTS:
+${profileData.projects.map(p => `- ${p.name}: ${p.highlight}`).join('\n')}
+
+EDUCATION:
+${profileData.education.join('\n')}
+
+CONTENT PILLARS:
+${profileData.contentPillars.map((pillar, i) => `${i + 1}. ${pillar}`).join('\n')}
+
+TONE & STRATEGY:
+${profileData.toneRules.join('\n')}
+
+INTERACTION RULES:
+1. Act as a Strategist: Push back on vague ideas. Ask which content pillar it fits into or suggest a better angle.
+2. Act as a Copywriter: Draft with his exact tone. Zero corporate fluff.
+3. Use Search Grounding for current tech trends, framework updates, or industry news.
+4. Reference his actual projects and experience when relevant.
 `;
 
-// Initialize the persistent chat session
+// OPTIMIZATION 1: Using latest available Gemini model.
+// OPTIMIZATION 2: Native systemInstruction injection for better context awareness.
+const model = genAI.getGenerativeModel({ 
+    model: "gemini-2.5-flash", // Update this if you have a different model available
+    systemInstruction: systemInstructions,
+    tools: [
+        {
+            googleSearch: {} // Enables live web search for current data
+        }
+    ]
+});
+
+// Initialize the persistent chat session cleanly
 let chatSession = model.startChat({
-    history: [{ role: "user", parts: [{ text: systemInstructions }] }],
+    history: [], // No longer need to hack system instructions into the history array
 });
 
 const extractStatusCode = (error) => {
@@ -112,10 +135,10 @@ app.post('/api/chat', async (req, res) => {
     }
 });
 
-// Reset endpoint (useful if the agent gets stuck in a loop and you want to clear memory)
+// Reset endpoint
 app.post('/api/reset', (req, res) => {
     chatSession = model.startChat({
-        history: [{ role: "user", parts: [{ text: systemInstructions }] }],
+        history: [], 
     });
     res.json({ message: "Agent memory wiped. Ready for a new topic." });
 });
